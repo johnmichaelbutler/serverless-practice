@@ -1,0 +1,91 @@
+service: demo2
+app: demo2
+frameworkVersion: '2'
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  profile: serverless-tutorial
+  stage: dev
+  region: us-east-2
+  # you can add statements to the Lambda function's IAM Role here
+  environment:
+    TABLE_NAME: ${self:service}-users-table-${self:provider.stage}
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - dynamodb:Query
+      - dynamodb:Scan
+      - dynamodb:GetItem
+      - dynamodb:PutItem
+      - dynamodb:UpdateItem
+      - dynamodb:DeleteItem
+    Resource: '*'
+
+functions:
+  helloHandler:
+    handler: handler.hello
+    events:
+      - http:
+          path: /sayhello
+          method: GET
+          cors: true
+    environment:
+      HELLO_VAR: "Test of function variable!"
+  createUser:
+    handler: api/create-user.handler
+    events:
+      - http:
+          path: /users
+          method: POST
+          cors: true
+  getSingleUser:
+    handler: api/get-user.handler
+    events:
+      - http:
+          path: /users/{id}
+          method: GET
+          cors: true
+  getAllUsers:
+    handler: api/get-user.handler
+    events:
+      - http:
+          path: /users
+          method: GET
+          cors: true
+  updateUser:
+    handler: api/update-user.handler
+    events:
+      - http:
+          path: /users/{id}
+          method: PUT
+          cors: true
+  deleteUser:
+    handler: api/delete-user.hanlder
+    events:
+      - http:
+          path: /users/{id}
+          method: DELETE
+          cors: true
+
+resources:
+  Resources:
+    S3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-users-table-${self:provider.stage}-jmbutler
+    MyDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: user_id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: user_id
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
+        TableName: ${self:provider.environment.TABLE_NAME}
