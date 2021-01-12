@@ -61,7 +61,7 @@ functions:
           method: PUT
           cors: true
   deleteUser:
-    handler: api/delete-user.hanlder
+    handler: api/delete-user.handler
     events:
       - http:
           path: /users/{id}
